@@ -61,6 +61,7 @@ RUN cd /opt/pxt/pxt-microbit && \
     npm link /opt/pxt/pxt && \
     npm link /opt/pxt/pxt-common-packages && \
     cd /opt/pxt/pxt && \
+    npm install gulp -g && \
     gulp && \
     cd /opt/pxt/pxt-microbit && \
     npm install && \
