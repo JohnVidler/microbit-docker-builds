@@ -58,8 +58,11 @@ COPY pxtarget.json /opt/pxt/pxt-microbit/pxtarget.json
 
 # Link pxt and pxt-common-packages, then build pxt-microbit
 RUN cd /opt/pxt/pxt-microbit && \
-    pxt link /opt/pxt/pxt && \
-    pxt link /opt/pxt/pxt-common-packages && \
+    npm link /opt/pxt/pxt && \
+    npm link /opt/pxt/pxt-common-packages && \
+    cd /opt/pxt/pxt && \
+    gulp && \
+    cd /opt/pxt/pxt-microbit && \
     npm install && \
     pxt buildtarget --local
 
