@@ -1,0 +1,10 @@
+version: "3.9"
+   
+services:
+  makecode:
+    build: .
+    volumes:
+      - ./projects:/opt/pxt/pxt-microbit/projects
+    ports:
+      - "8000:8000"
+

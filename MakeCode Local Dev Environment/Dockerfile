@@ -7,32 +7,36 @@ ENV PXT_FORCE_LOCAL=1
 ENV PXT_NODOCKER=1
 #ENV PXT_COMPILE_SWITCHES=csv---mbcodal
 
-WORKDIR /opt/pxt
-
 # Update and upgrade the system, installing python 3.6 explicitly for yotta
 RUN apt update && \
     DEBIAN_FRONTEND=noninteractive TZ=Europe/London apt-get -y install tzdata && \
-    apt install -y build-essential cmake software-properties-common nodejs npm git wget libncurses-dev && \
+    apt install -y build-essential cmake software-properties-common nodejs npm git wget srecord libncurses-dev && \
     apt upgrade -y && \
     add-apt-repository ppa:deadsnakes/ppa && \
     apt update && \
-    apt install -y python3.6 python3-pip python-setuptools ninja-build python-dev libffi-dev libssl-dev && \
-    pip install yotta
+    apt install -y python3.6 python3-pip python-setuptools ninja-build python-dev libffi-dev libssl-dev
+
+# Actually install yotta
+WORKDIR /home
+COPY requirements.txt /home/requirements.txt
+RUN python3 -m pip --no-cache-dir install --upgrade pip && \
+    python3 -m pip --no-cache-dir install -r /home/requirements.txt && \
+    rm /home/requirements.txt
+
 
 # Download and install the arm toolchain (arm-non-eabi-*)
-#RUN wget https://developer.arm.com/-/media/Files/downloads/gnu/11.2-2022.02/binrel/gcc-arm-11.2-2022.02-x86_64-arm-none-eabi.tar.xz && \
-#    tar xf gcc-arm-11.2-2022.02-x86_64-arm-none-eabi.tar.xz -C /usr/share/ && \
-RUN wget https://developer.arm.com/-/media/Files/downloads/gnu-rm/10.3-2021.10/gcc-arm-none-eabi-10.3-2021.10-x86_64-linux.tar.bz2 && \
-    tar xf gcc-arm-none-eabi-10.3-2021.10-x86_64-linux.tar.bz2 -C /usr/share/ && \
-    ln -s /usr/share/gcc-arm-11.2-2022.02-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc /usr/bin/arm-none-eabi-gcc && \
-    ln -s /usr/share/gcc-arm-11.2-2022.02-x86_64-arm-none-eabi/bin/arm-none-eabi-g++ /usr/bin/arm-none-eabi-g++ && \
-    ln -s /usr/share/gcc-arm-11.2-2022.02-x86_64-arm-none-eabi/bin/arm-none-eabi-gdb /usr/bin/arm-none-eabi-gdb && \
-    ln -s /usr/share/gcc-arm-11.2-2022.02-x86_64-arm-none-eabi/bin/arm-none-eabi-size /usr/bin/arm-none-eabi-size && \
-    ln -s /usr/share/gcc-arm-11.2-2022.02-x86_64-arm-none-eabi/bin/arm-none-eabi-objcopy /usr/bin/arm-none-eabi-objcopy && \
-    ln -s /usr/lib/x86_64-linux-gnu/libncurses.so.6 /usr/lib/x86_64-linux-gnu/libncurses.so.5 && \
-    ln -s /usr/lib/x86_64-linux-gnu/libtinfo.so.6 /usr/lib/x86_64-linux-gnu/libtinfo.so.5
+WORKDIR /opt/
+RUN cd /opt/ && \
+    wget -q https://developer.arm.com/-/media/Files/downloads/gnu-rm/10-2020q4/gcc-arm-none-eabi-10-2020-q4-major-x86_64-linux.tar.bz2 && \
+    echo "8312c4c91799885f222f663fc81f9a31  gcc-arm-none-eabi-10-2020-q4-major-x86_64-linux.tar.bz2" >> MD5SUM && \
+    md5sum -c MD5SUM && \
+    rm MD5SUM && \
+    tar -xf gcc-arm-none-eabi-10-2020-q4-major-x86_64-linux.tar.bz2 && \
+    rm gcc-arm-none-eabi-10-2020-q4-major-x86_64-linux.tar.bz2
+ENV PATH $PATH:/opt/gcc-arm-none-eabi-10-2020-q4-major/bin
 
 # Grab PXT and build
+WORKDIR /opt/pxt
 RUN cd /opt/pxt && \
     git clone -b v7.5.29 https://github.com/microsoft/pxt pxt && \
     cd /opt/pxt/pxt && \
